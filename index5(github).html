@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Interactive Menu</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Updated Font Imports -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Cormorant+Garamond:wght@600;700&family=Inter:wght@400;600;700&display=swap');
+        
+        /* General Styles for Black/Yellow Theme and Background */
+        body {
+            font-family: 'Inter', sans-serif;
+            color: #fff;
+            background-color: #0d0d0d;
+            /* Optional: Add a subtle background image */
+            background-image: url('bg4.webp');
+            background-size: cover;
+            background-attachment: fixed;
+            background-blend-mode: multiply; /* Darkens the image for readability */
+            background-color: rgba(0, 0, 0, 0.7); 
+        }
+
+        /* Typography */
+        .menu-title {
+            font-family: 'Playfair Display', serif;
+            letter-spacing: 0.1em;
+            text-shadow: 0 0 10px rgba(253, 224, 71, 0.5); /* Yellow glow */
+        }
+        .menu-item-name {
+            font-family: 'Cormorant Garamond', serif; 
+            font-weight: 700;
+        }
+
+        /* Menu Item Hover Animation */
+        .menu-item {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            cursor: pointer;
+        }
+        .menu-item:hover {
+            transform: scale(1.02);
+            box-shadow: 0 10px 25px rgba(253, 224, 71, 0.2), 0 0 5px rgba(253, 224, 71, 0.1);
+        }
+
+        /* Scroll Animation Setup */
+        .fade-in-on-scroll {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+        }
+        .fade-in-on-scroll.active-scroll-fade {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* Mobile Navigation Drawer Transition */
+        #mobile-nav-drawer {
+            transition: transform 0.3s ease-in-out;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <!-- Header and Mobile Navigation Toggle -->
+    <nav class="sticky top-0 z-50 bg-gray-900/90 backdrop-blur-sm shadow-xl border-b border-yellow-600/30">
+        <div class="max-w-7xl mx-auto flex justify-between items-center py-4 px-4">
+            <h1 class="text-3xl font-bold text-yellow-400">Menu</h1>
+            <!-- Hamburger Icon (3 lines) -->
+            <button id="nav-toggle" onclick="toggleNav()" class="text-yellow-400 hover:text-yellow-200 transition duration-200 focus:outline-none p-2 rounded-lg hover:bg-yellow-800/30">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+            </button>
+        </div>
+    </nav>
+    
+    <!-- Mobile Navigation Drawer (New Feature) -->
+    <div id="mobile-nav-drawer" class="fixed top-0 left-0 w-64 h-full bg-gray-900 z-50 shadow-2xl transform -translate-x-full">
+        <div class="p-6">
+            <h3 class="text-2xl font-bold text-yellow-400 mb-6 border-b border-yellow-700 pb-3">Categories</h3>
+            <div id="nav-links" class="flex flex-col space-y-3">
+                <!-- Category links will be dynamically injected here -->
+            </div>
+            <button onclick="toggleNav()" class="absolute top-4 right-4 text-gray-400 hover:text-yellow-400 p-2 rounded-full transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+    </div>
+    <!-- Overlay to close menu when clicking outside -->
+    <div id="nav-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden" onclick="toggleNav()"></div>
+
+
+    <!-- Header Section -->
+    <header class="text-center my-10 pt-4 px-4">
+        <h1 class="menu-title text-5xl md:text-7xl font-bold text-yellow-300 mb-2">The Royal Platter</h1>
+        <p class="text-xl text-gray-400 tracking-wider">A Digital Culinary Experience</p>
+    </header>
+
+    <!-- Main Menu Container -->
+    <main class="max-w-7xl mx-auto px-4 pb-16">
+        <!-- The Menu Grid - 2 columns on desktop, 1 on mobile -->
+        <div id="menu-container" class="grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-10">
+            <!-- Menu items will be injected here by JavaScript -->
+        </div>
+    </main>
+
+    <!-- Food Item Detail Modal (Now a Liquid Box with Improved Image Display) -->
+    <div id="item-modal" class="fixed inset-0 z-50 hidden bg-black bg-opacity-90 p-4 transition-opacity duration-300 flex items-center justify-center" onclick="closeModal()">
+        <!-- MODAL CONTENT: Liquid box behavior -->
+        <div id="modal-content" class="bg-gray-800 rounded-xl shadow-2xl w-11/12 max-w-2xl mx-auto overflow-hidden transform scale-95 transition-all duration-300" onclick="event.stopPropagation()">
+            
+            <!-- Image Section (Increased height and is now the top section) -->
+            <div class="relative">
+                <img id="modal-image" src="" alt="Food Item" class="w-full h-64 object-cover" onerror="this.onerror=null;this.src='https://placehold.co/400x256/374151/FFF?text=Image+Not+Found'">
+                
+                <!-- Price Tag Overlay -->
+                <span id="modal-price-overlay" class="absolute bottom-4 right-4 text-2xl font-bold px-4 py-2 bg-yellow-600 text-gray-900 rounded-lg shadow-xl"></span>
+
+                <!-- Close Button at the top right of the modal -->
+                <button onclick="closeModal()" class="absolute top-2 right-2 text-white bg-red-600/80 hover:bg-red-700 p-2 rounded-full z-10 transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+
+            <!-- Text Content -->
+            <div class="p-6">
+                <h2 id="modal-name" class="text-3xl font-extrabold text-yellow-400 mb-1 border-b-2 border-yellow-700 pb-2"></h2>
+                <p id="modal-category" class="text-xs uppercase text-gray-500 tracking-widest mb-4"></p>
+                
+                <!-- Combined description to be more compact -->
+                <p id="modal-description" class="text-gray-300 text-sm leading-snug pt-2"></p>
+                
+                <!-- Serving Size at the bottom -->
+                <div class="flex justify-start items-end mt-6">
+                    <p id="modal-serving-size" class="text-base font-bold text-yellow-300 italic"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- DATA EXTRACTION FROM MENU CARD IMAGE (Updated Descriptions and Image URLs) ---
+        const menuData = [
+            // Soups (Veg) - Mapped to c1.jpg, c2.jpg
+            { id: 1, name: "Veg. Soup", price: "60/-", category: "Soups", 
+              description: "A light and refreshing classic vegetable soup. Method: Clear broth simmered with garden vegetables. Pair with: Crispy noodles or breadsticks.", 
+              serving: "1 person" ,
+              imgUrl: "c1.jpg" },
+            { id: 2, name: "Veg. Hot & Sour Soup", price: "60/-", category: "Soups", 
+              description: "Spicy and tangy soup with exotic vegetables for a fiery kick. Method: Thickened broth with vinegar, chili oil, and vegetables. Pair with: Steamed momos or spring rolls.", 
+              serving: "1 person", 
+              imgUrl: "c2.jpg" },
+            
+            // Veg Starters - Mapped to c3.jpg, c4.jpg, c5.jpg
+            { id: 6, name: "Veg. 65", price: "110/-", category: "Veg Starters", 
+              description: "Deep-fried, crispy vegetables tossed in a spicy curd and chilli-based masala. Method: Marinated vegetables, deep-fried, then sautéed. Pair with: Mint chutney and cold beverage.", 
+              serving: "2 people",
+              imgUrl: "c3.jpg" },
+            { id: 7, name: "Veg. Manchuria", price: "120/-", category: "Veg Starters", 
+              description: "Indo-Chinese vegetable dumplings in a savory, thick gravy. Method: Fried vegetable balls tossed in a soy-based sauce. Pair with: Veg Fried Rice or Hakka Noodles.", 
+              serving: "2-3 people",
+              imgUrl: "c4.jpg" },
+            { id: 8, name: "Paneer Chilli", price: "120/-", category: "Veg Starters", 
+              description: "Cubes of cottage cheese tossed with bell peppers and a fiery chilli sauce. Method: Flash-fried paneer, wok-tossed with peppers and onions. Pair with: Tomato ketchup or Szechuan Sauce.", 
+              serving: "2 people",
+              imgUrl: "c5.jpg" },
+            
+            // Veg Main Course - Mapped to c6.jpg, c7.jpg
+            { id: 10, name: "Paneer Butter Masala", price: "130/-", category: "Veg Main Course", 
+              description: "Soft paneer in a classic, creamy tomato, cashew, and butter gravy. Method: Paneer cooked in a rich, slow-simmered Makhani gravy. Pair with: Butter Naan or Lachha Paratha.", 
+              serving: "2-3 people",
+              imgUrl: "c6.jpg" },
+            { id: 11, name: "Malai Kofta", price: "150/-", category: "Veg Main Course", 
+              description: "Fried vegetable and paneer dumplings served in a rich, mild cream sauce. Method: Koftas gently simmered in a cashew and cream-based curry. Pair with: Plain Naan or Jeera Rice.", 
+              serving: "2 people",
+              imgUrl: "c7.jpg" },
+            
+            // Breads & Rice - Mapped to c8.jpeg, c9.jpg
+            { id: 14, name: "Veg. Fried Rice", price: "100/-", category: "Breads & Rice", 
+              description: "Wok-tossed rice with fresh vegetables and a hint of soy sauce. Method: Rice quickly fried with shredded cabbage, carrots, and peas. Pair with: Chicken Manchuria or Paneer Chilli.", 
+              serving: "1-2 people",
+              imgUrl: "c8.jpeg" },
+            { id: 15, name: "Veg. Biryani", price: "140/-", category: "Breads & Rice", 
+              description: "Aromatic basmati rice cooked with mixed vegetables and fragrant spices. Method: Layers of rice and seasoned vegetables cooked 'dum' style. Pair with: Raita (yogurt dip) or Mirchi ka Salan.", 
+              serving: "2 people",
+              imgUrl: "c9.jpg" },
+            
+            // Non-Veg Starters - Mapped to c10.jpg, c11.jpg
+            { id: 17, name: "Chicken 65", price: "140/-", category: "Non-Veg Starters", 
+              description: "Spicy, deep-fried chicken marinated with vibrant South Indian spices. Method: Chicken cubes marinated overnight and sautéed with curry leaves. Pair with: Lemon wedges and sliced onions.", 
+              serving: "2 people",
+              imgUrl: "c10.jpg" },
+            { id: 20, name: "Chicken Lollipop", price: "150/-", category: "Non-Veg Starters", 
+              description: "Frenched chicken drumettes, a popular appetizer. Method: Marinated chicken wings shaped like lollipops and deep-fried. Pair with: Szechuan Sauce or Garlic Sauce.", 
+              serving: "2 people (4 pieces)",
+              imgUrl: "c11.jpg" },
+
+            // Chicken Curries - Mapped to c12.jpg, c13.jpg
+            { id: 21, name: "Butter Chicken", price: "160/-", category: "Chicken Curries", 
+              description: "Tender chicken in a classic, rich, buttery, and mildly spiced tomato sauce. Method: Charcoal-grilled chicken cooked in a tomato-cashew gravy. Pair with: Garlic Naan or Plain Rice.", 
+              serving: "2-3 people",
+              imgUrl: "c12.jpg" },
+            { id: 22, name: "Kadai Chicken", price: "150/-", category: "Chicken Curries", 
+              description: "Chicken cooked in an Indian wok (kadai) with whole spices and bell peppers. Method: Dry-roasted spices are ground and cooked with chicken, tomatoes, and capsicum. Pair with: Roti or plain Tandoori Naan.", 
+              serving: "2 people",
+              imgUrl: "c13.jpg" },
+
+            // Mutton Dry/Curry - Mapped to c14.jpg
+            { id: 24, name: "Mutton Roast", price: "180/-", category: "Mutton Dry/Curry", 
+              description: "Slow-cooked mutton pieces, dry roasted with a blend of aromatic spices. Method: Mutton slow-cooked in a dry, thick gravy of onions and spices. Pair with: Plain Rice or Wheat Roti.", 
+              serving: "2-3 people",
+              imgUrl: "c14.jpg" },
+        ];
+
+        // Function to group menu items by category
+        const groupByCategory = (data) => {
+            return data.reduce((acc, item) => {
+                const category = item.category;
+                if (!acc[category]) {
+                    acc[category] = [];
+                }
+                acc[category].push(item);
+                return acc;
+            }, {});
+        };
+
+        // --- Core Application Logic ---
+
+        // Toggle mobile navigation drawer
+        const toggleNav = () => {
+            const drawer = document.getElementById('mobile-nav-drawer');
+            const overlay = document.getElementById('nav-overlay');
+            const isHidden = drawer.classList.contains('-translate-x-full');
+
+            if (isHidden) {
+                drawer.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+            } else {
+                drawer.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+                document.body.style.overflow = '';
+            }
+        };
+
+        // Function to display the item details modal
+        const showDetails = (item) => {
+            const modal = document.getElementById('item-modal');
+            const content = document.getElementById('modal-content');
+            
+            // Populate modal content
+            document.getElementById('modal-name').textContent = item.name;
+            document.getElementById('modal-category').textContent = item.category;
+
+            // Separate the description text (no more bullet points in description)
+            document.getElementById('modal-description').textContent = item.description;
+
+            // Set the serving size prominently
+            document.getElementById('modal-serving-size').textContent = `Serves: ${item.serving}`;
+            
+            // Price is now set on the image overlay
+            document.getElementById('modal-price-overlay').textContent = item.price;
+            
+            // **Important: Image path updated to just the filename**
+            document.getElementById('modal-image').src = item.imgUrl;
+            
+            // Show modal with transition classes
+            modal.classList.remove('hidden', 'opacity-0');
+            modal.classList.add('opacity-100');
+            content.classList.remove('scale-95');
+            content.classList.add('scale-100');
+
+            // Disable body scroll when modal is open
+            document.body.style.overflow = 'hidden';
+        };
+
+        // Function to close the modal
+        const closeModal = () => {
+            const modal = document.getElementById('item-modal');
+            const content = document.getElementById('modal-content');
+
+            // Apply exit transition classes
+            modal.classList.remove('opacity-100');
+            modal.classList.add('opacity-0');
+            content.classList.remove('scale-100');
+            content.classList.add('scale-95');
+
+            // Hide the modal after transition completes
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                document.body.style.overflow = ''; // Re-enable body scroll
+            }, 300);
+        };
+        
+        // Function to handle smooth scrolling from navigation
+        const scrollToCategory = (categoryId) => {
+            document.querySelector(`#${categoryId}`).scrollIntoView({ behavior: 'smooth' });
+            toggleNav(); // Close the menu after clicking
+        }
+        
+        // Intersection Observer for scroll animations (New Feature)
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.1 // Trigger when 10% of the element is visible
+        };
+
+        const observerCallback = (entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active-scroll-fade');
+                    observer.unobserve(entry.target); // Stop observing once animated
+                }
+            });
+        };
+
+        const menuObserver = new IntersectionObserver(observerCallback, observerOptions);
+
+        // Function to render the menu dynamically
+        const renderMenu = () => {
+            const container = document.getElementById('menu-container');
+            const navLinksContainer = document.getElementById('nav-links');
+            const groupedMenu = groupByCategory(menuData);
+            container.innerHTML = ''; 
+            navLinksContainer.innerHTML = ''; 
+
+            // Iterate over each category
+            for (const category in groupedMenu) {
+                const categoryId = category.toLowerCase().replace(/[^a-z0-9]+/g, '-'); 
+
+                // 1. Create Nav Link for mobile drawer
+                const navLink = document.createElement('a');
+                navLink.href = 'javascript:void(0)'; // Use JS function instead of true link
+                navLink.textContent = category;
+                navLink.className = 'text-base font-medium text-gray-300 hover:text-yellow-400 transition duration-300 block py-2 border-b border-gray-700';
+                navLink.setAttribute('onclick', `scrollToCategory('${categoryId}')`);
+                navLinksContainer.appendChild(navLink);
+
+
+                // 2. Create Category Section
+                const categorySection = document.createElement('div');
+                // Use pt-16 and -mt-16 to offset the section anchor for the sticky header
+                categorySection.className = 'w-full pt-16 -mt-16'; 
+                categorySection.id = categoryId; // Set the ID for scrolling
+
+                // Category Title with animation/styling
+                categorySection.innerHTML = `
+                    <h2 class="text-3xl font-bold text-yellow-500 mb-6 pb-2 border-b-2 border-yellow-600/50 relative group fade-in-on-scroll">
+                        ${category}
+                        <span class="absolute bottom-0 left-0 w-full h-0.5 bg-yellow-600/0 group-hover:bg-yellow-600 transition-all duration-300"></span>
+                    </h2>
+                `;
+                
+                const itemList = document.createElement('ul');
+                itemList.className = 'space-y-4';
+
+                // Observe the category title
+                menuObserver.observe(categorySection.querySelector('h2'));
+
+
+                // Iterate over items in the category
+                groupedMenu[category].forEach(item => {
+                    const listItem = document.createElement('li');
+                    listItem.className = 'menu-item p-3 rounded-lg flex justify-between items-center bg-gray-800/50 hover:bg-gray-800 transition duration-200 fade-in-on-scroll';
+                    // Pass item data securely
+                    listItem.setAttribute('onclick', `showDetails(${JSON.stringify(item).replace(/'/g, "\\'")})`); 
+
+                    listItem.innerHTML = `
+                        <div class="flex flex-col">
+                            <!-- Applied the elegant font class 'menu-item-name' -->
+                            <span class="text-xl font-semibold text-gray-200 menu-item-name">${item.name}</span>
+                            <span class="text-sm text-gray-500 italic">Click for details...</span>
+                        </div>
+                        <span class="text-xl font-extrabold text-yellow-400 border-l-2 border-gray-700 pl-4">${item.price}</span>
+                    `;
+                    itemList.appendChild(listItem);
+                    
+                    // Observe the list item for scroll animation
+                    menuObserver.observe(listItem);
+                });
+
+                categorySection.appendChild(itemList);
+                container.appendChild(categorySection);
+            }
+        };
+
+        // Initialize the menu on page load
+        window.onload = renderMenu;
+    </script>
+
+</body>
+</html>
